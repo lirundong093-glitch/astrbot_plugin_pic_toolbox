@@ -3,4 +3,4 @@ display_name: 图片处理工具箱
 desc: 图片处理工具集：/反色 图片反色、/调速 倍数 GIF调速、/发射 GIF液体特效。支持引用图片或直接带图发送。
 version: v1.0.0
 author: Lucy
-ropo: 
+ropo: https://github.com/lirundong093-glitch/astrbot_plugin_pic_toolbox
