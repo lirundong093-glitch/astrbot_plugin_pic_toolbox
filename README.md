@@ -6,7 +6,7 @@
 
 # 🖼️ 图片处理工具箱 (astrbot_plugin_pic_toolbox)
 
-基于 AstrBot 框架的群聊图片处理插件，支持对静态图片和 GIF 进行反色、翻转、调速，以及生成摸头杀动画。
+基于 AstrBot 框架的群聊图片处理插件，支持对静态图和 GIF 进行反色、翻转、镜像对称、调速，以及生成摸头杀动画。所有 GIF 处理统一使用增量帧展开管道，保留原图时长、透明度与循环信息。
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-v1.0.0-blue" alt="Version">
@@ -17,12 +17,28 @@
 
 ## ✨ 功能
 
+### 变换类
+
 | 指令 | 说明 |
 | :--- | :--- |
 | `反色` | 对图片/GIF 执行反色处理 |
 | `左右翻转` | 水平镜像翻转 |
 | `上下翻转` | 垂直颠倒翻转 |
 | `调速 0.3~5.0` | 调整 GIF 播放速度（如 `调速 2.0` 即两倍速） |
+
+### 对称类
+
+| 指令 | 说明 |
+| :--- | :--- |
+| `左对称` | 保留左半边 → 镜像到右边 |
+| `右对称` | 保留右半边 → 镜像到左边 |
+| `上对称` | 保留上半边 → 镜像到下边 |
+| `下对称` | 保留下半边 → 镜像到上边 |
+
+### 特效类
+
+| 指令 | 说明 |
+| :--- | :--- |
 | `摸头` | 生成 Petpet 摸头杀 GIF（基于 [B1gM8c/Petpet](https://github.com/B1gM8c/Petpet) 算法） |
 
 ### 通用特性
@@ -40,13 +56,9 @@
 
 ## 📦 安装与依赖
 
-### 1. 安装依赖
-
 ```bash
 pip install Pillow requests
 ```
-
-### 2. 安装插件
 
 将本插件目录放入 AstrBot 的 `addons/plugins` 对应目录，或通过 AstrBot 面板上传。
 
@@ -63,6 +75,9 @@ pip install Pillow requests
 ### 摸头杀
 ![摸头](image_to_show_petpet.gif)
 
+### 左对称
+![左对称](image_to_show_mirror_left.png)
+
 </div>
 </details>
 
@@ -73,11 +88,14 @@ astrbot_plugin_pic_toolbox/
 ├── main.py          # 指令路由与事件处理
 ├── flip.py          # 左右翻转 / 上下翻转
 ├── invert.py        # 反色处理
+├── mirror.py        # 左/右/上/下对称
 ├── gif_speed.py     # GIF 调速
 ├── petpet.py        # 摸头杀生成器
 ├── gif_utils.py     # GIF 帧展开与保存公用函数
 ├── petpet_hand.png  # 摸头杀手部精灵图
-└── _conf_schema.json
+├── metadata.yaml
+├── _conf_schema.json
+└── requirements.txt
 ```
 
 ## 🔄 GIF 处理说明
