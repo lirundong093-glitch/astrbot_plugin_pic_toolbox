@@ -1,0 +1,14 @@
+{
+  "enable_at_avatar": {
+    "description": "启用@用户头像功能",
+    "type": "bool",
+    "default": true,
+    "hint": "允许 @用户 + /反色 获取对方头像进行反色处理"
+  },
+  "match_mode": {
+    "description": "词语精准匹配模式",
+    "type": "bool",
+    "default": false,
+    "hint": "开启后，引用图片直接发「反色」或「调速 倍数」（无需 /），即可触发"
+  }
+}
