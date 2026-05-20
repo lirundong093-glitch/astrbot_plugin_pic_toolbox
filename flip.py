@@ -12,6 +12,7 @@ def flip_horizontal(input_path: str, output_path: str) -> str:
     return output_path
 
 
+
 def flip_vertical(input_path: str, output_path: str) -> str:
     if is_gif(input_path):
         return _flip_gif(input_path, output_path, Image.FLIP_TOP_BOTTOM)
@@ -20,12 +21,16 @@ def flip_vertical(input_path: str, output_path: str) -> str:
     return output_path
 
 
+
 def _flip_gif(input_path: str, output_path: str, method) -> str:
     gif = Image.open(input_path)
     frames, durations = unfold_frames(gif)
-    flipped = [f.transpose(method) for f in frames]
+    flipped_frames = [frame.convert("RGBA").transpose(method) for frame in frames]
 
     kwargs = save_kwargs_for(gif, durations)
-    kwargs.update(save_all=True, append_images=flipped[1:] if len(flipped) > 1 else [])
-    flipped[0].save(output_path, "GIF", **kwargs)
+    kwargs.update(
+        save_all=True,
+        append_images=flipped_frames[1:] if len(flipped_frames) > 1 else [],
+    )
+    flipped_frames[0].save(output_path, "GIF", **kwargs)
     return output_path

@@ -81,8 +81,9 @@ def generate_petpet(input_path: str, output_path: str) -> str:
         "GIF",
         save_all=True,
         append_images=frames[1:],
-        duration=DELAY,
+        duration=[DELAY] * len(frames),
         loop=0,
         disposal=2,
+        optimize=False,
     )
     return output_path
