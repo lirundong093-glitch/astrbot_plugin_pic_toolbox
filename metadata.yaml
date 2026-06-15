@@ -1,7 +1,7 @@
 name: pic_toolbox
 display_name: 图片处理工具箱
 desc: 图片处理工具集：反色/调速/左右翻转/上下翻转/左对称/右对称/上对称/下对称/摸头/发射/操你/抽你/杀。支持静态图和 GIF，支持 @用户 取头像操作，支持精准关键词匹配。基于 Pillow，统一 GIF 帧展开管道。
-version: v1.1.0
+version: v1.1.1
 author: Lucy
 repo: https://github.com/lirundong093-glitch/astrbot_plugin_pic_toolbox
 support_platforms:
