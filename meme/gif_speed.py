@@ -30,6 +30,8 @@ def adjust_gif_speed(
       来实现目标倍率（默认 False 时自动回退到最高不超过 50 FPS 的倍率）。
     """
     gif = Image.open(input_path)
+    src_palette = gif.getpalette()
+    src_trans = gif.info.get("transparency")
     frames, durations = unfold_frames(gif)
 
     frame_count = len(frames)
@@ -49,7 +51,9 @@ def adjust_gif_speed(
     # ── 情况 1：目标 FPS 在 50 以内，直接调速 ──
     if target_fps <= _GIF_MAX_FPS:
         new_durs = [max(_GIF_MIN_DURATION_MS, min(65535, int(d / speed))) for d in durations]
-        save_rgba_gif(frames, new_durs, output_path, loop=gif.info.get("loop", 0))
+        save_rgba_gif(frames, new_durs, output_path, loop=gif.info.get("loop", 0),
+                      source_palette=src_palette,
+                      source_trans_idx=src_trans)
         return output_path, speed, None
 
     # ── 情况 2：不允许丢帧 → 回退到不超过 50 FPS 的最高倍率 ──
@@ -63,7 +67,9 @@ def adjust_gif_speed(
 
         actual_fps = original_avg_fps * max_multiplier if max_multiplier >= 0.3 else original_avg_fps * 0.3
         new_durs = [max(_GIF_MIN_DURATION_MS, min(65535, int(d / max_multiplier))) for d in durations]
-        save_rgba_gif(frames, new_durs, output_path, loop=gif.info.get("loop", 0))
+        save_rgba_gif(frames, new_durs, output_path, loop=gif.info.get("loop", 0),
+                      source_palette=src_palette,
+                      source_trans_idx=src_trans)
 
         warning = (
             f"⚠️ GIF 调速提醒：原 GIF {original_avg_fps:.1f} FPS，"
@@ -88,7 +94,9 @@ def adjust_gif_speed(
 
     # 丢帧模式下不修改单帧间隔，仅通过丢帧实现加速
     new_durs = kept_durations
-    save_rgba_gif(kept_frames, new_durs, output_path, loop=gif.info.get("loop", 0))
+    save_rgba_gif(kept_frames, new_durs, output_path, loop=gif.info.get("loop", 0),
+                  source_palette=src_palette,
+                  source_trans_idx=src_trans)
 
     # 计算实际达到的倍率
     actual_total = sum(new_durs)

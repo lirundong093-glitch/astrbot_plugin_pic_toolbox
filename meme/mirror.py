@@ -36,10 +36,14 @@ def _mirror_static(img: Image.Image, keep: str) -> Image.Image:
 
 def _mirror_gif(input_path: str, output_path: str, keep: str) -> str:
     gif = Image.open(input_path)
+    src_palette = gif.getpalette()
+    src_trans = gif.info.get("transparency")
     frames, durations = unfold_frames(gif)
     mirrored = [_mirror_static(f, keep) for f in frames]
 
-    save_rgba_gif(mirrored, durations, output_path, loop=gif.info.get("loop", 0))
+    save_rgba_gif(mirrored, durations, output_path, loop=gif.info.get("loop", 0),
+                  source_palette=src_palette,
+                  source_trans_idx=src_trans)
     return output_path
 
 

@@ -24,8 +24,12 @@ def flip_vertical(input_path: str, output_path: str) -> str:
 
 def _flip_gif(input_path: str, output_path: str, method) -> str:
     gif = Image.open(input_path)
+    src_palette = gif.getpalette()
+    src_trans = gif.info.get("transparency")
     frames, durations = unfold_frames(gif)
     flipped_frames = [frame.convert("RGBA").transpose(method) for frame in frames]
 
-    save_rgba_gif(flipped_frames, durations, output_path, loop=gif.info.get("loop", 0))
+    save_rgba_gif(flipped_frames, durations, output_path, loop=gif.info.get("loop", 0),
+                  source_palette=src_palette,
+                  source_trans_idx=src_trans)
     return output_path

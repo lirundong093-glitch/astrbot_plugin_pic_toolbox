@@ -157,66 +157,94 @@ def _write_gif_sub_blocks(f, data: bytes):
 
 
 def save_rgba_gif(frames: list, durations: list, output_path: str,
-                  loop: int = 0, disposal: int = 2):
+                  loop: int = 0, disposal: int = 2,
+                  source_palette=None, source_trans_idx=None):
     """保存 RGBA 帧列表为 GIF，正确保持透明背景。
 
     手工写入 GIF 二进制，确保：
     1. 所有帧共享同一个全局调色板（0 个局部调色板）
     2. 透明索引统一（所有帧同一个 transparent index）
-    3. 这是 QQ 正确显示 GIF 透明背景的关键
 
-    采用 colors=255 量化，让 Pillow 自动分配透明索引，
-    避免手动指定索引时可能的调色板映射错误。
+    当提供 source_palette 时（原 GIF 的 getpalette() 结果），
+    直接复用原调色板——避免重新量化导致的颜色偏移。
+    适用于调速/翻转/对称等不改变像素颜色的操作。
+    当未提供时（如反色操作），自动从第一帧量化生成新调色板。
+
+    Args:
+        frames: RGBA 帧列表
+        durations: 每帧持续时间 (ms)
+        output_path: 输出路径
+        loop: 循环次数 (0=无限)
+        disposal: 处置方式 (默认 2=恢复背景)
+        source_palette: 可选，原 GIF 调色板 (768 bytes)
+        source_trans_idx: 可选，原 GIF 透明索引
     """
     if not frames:
         return
 
-    # 1. 量化：用第一帧生成主调色板 (colors=255 让 Pillow 自动留 transparent slot)
     first_rgba = frames[0].convert("RGBA")
-    first_p = first_rgba.quantize(colors=255, method=Image.Quantize.FASTOCTREE)
-    palette = list(first_p.getpalette())[:768]
-    trans_idx = first_p.info.get("transparency")
-    if trans_idx is None:
-        trans_idx = 0
-    # 补齐到 768 字节（256 色）
-    if len(palette) < 768:
-        palette.extend([0] * (768 - len(palette)))
+    has_alpha = any(
+        (np.array(f.convert("RGBA").split()[-1], dtype=np.uint8) < 128).any()
+        for f in frames
+    )
 
     w, h = first_rgba.size
 
-    # 2. 将所有帧 remap 到同一调色板（用 Pillow C 级量化加速）
+    # ── 1. 决定调色板 ──────────────────────
+    if source_palette is not None:
+        # 复用原调色板：无颜色偏移
+        palette = list(source_palette)[:768]
+        if len(palette) < 768:
+            palette.extend([0] * (768 - len(palette)))
+        trans_idx = source_trans_idx
+        if trans_idx is None and has_alpha:
+            # 原图无透明色但帧有透明像素 → 无可用透明索引，回退重量化
+            first_p = first_rgba.quantize(colors=255, method=Image.Quantize.FASTOCTREE)
+            palette = list(first_p.getpalette())[:768]
+            trans_idx = first_p.info.get("transparency") or 0
+            if len(palette) < 768:
+                palette.extend([0] * (768 - len(palette)))
+            template_p = first_p
+        else:
+            # 构建模板 P 图（仅用于提供给 quantize 的 palette 参考）
+            template_p = Image.new("P", (1, 1))
+            template_p.putpalette(palette)
+    else:
+        # 重新量化（反色等改变颜色的操作）
+        first_p = first_rgba.quantize(colors=255, method=Image.Quantize.FASTOCTREE)
+        palette = list(first_p.getpalette())[:768]
+        trans_idx = first_p.info.get("transparency")
+        if trans_idx is None:
+            trans_idx = 0
+        if len(palette) < 768:
+            palette.extend([0] * (768 - len(palette)))
+        template_p = first_p
+
+    # ── 2. 将所有帧 remap 到同一调色板 ──────
     p_frames = []
-    template_p = first_p  # P 模式模板
 
     for f in frames:
         rgba = f.convert("RGBA") if f.mode != "RGBA" else f
-        # RGB → quantize 到模板的调色板（C 级别，快）
         rgb = rgba.convert("RGB")
         quantized = rgb.quantize(palette=template_p)
-        # 透明像素（alpha < 128）替换为 trans_idx
-        alpha = rgba.split()[-1]
-        alpha_arr = np.array(alpha, dtype=np.uint8)
         quant_arr = np.array(quantized, dtype=np.uint8)
-        quant_arr[alpha_arr < 128] = trans_idx
+
+        if trans_idx is not None and has_alpha:
+            alpha = rgba.split()[-1]
+            alpha_arr = np.array(alpha, dtype=np.uint8)
+            quant_arr[alpha_arr < 128] = trans_idx
         p_frames.append(quant_arr)
 
-    # 首帧也需处理透明像素
-    first_arr = np.array(template_p, dtype=np.uint8)
-    alpha0 = np.array(first_rgba.split()[-1], dtype=np.uint8)
-    first_arr[alpha0 < 128] = trans_idx
-    p_frames[0] = first_arr
-
-    # 3. 写入 GIF 文件
+    # ── 3. 写入 GIF 文件 ───────────────────
     with open(output_path, "wb") as f:
         # Header
         f.write(b"GIF89a")
 
         # Logical Screen Descriptor
-        # packed: bit7=1(GCT present), bits4-6=7(color res), bits0-2=7(256 colors)
-        packed = 0xF7
+        packed = 0xF7  # GCT present, 256 colors
         f.write(struct.pack("<HHBBB", w, h, packed, 0, 0))
 
-        # Global Color Table (256 colors × 3 bytes = 768)
+        # Global Color Table
         f.write(bytes(palette[:768]))
 
         # Netscape Extension (loop)
@@ -227,18 +255,20 @@ def save_rgba_gif(frames: list, durations: list, output_path: str,
         # 逐帧写入
         for i, pframe in enumerate(p_frames):
             dur_ms = durations[i] if i < len(durations) else 100
-            dur_cs = max(1, min(65535, dur_ms // 10))  # 百分秒
+            dur_cs = max(1, min(65535, dur_ms // 10))
 
             # Graphic Control Extension
             disposal_bits = (disposal & 0x07) << 2
-            flags = disposal_bits | 0x01  # 有透明色
+            has_trans = (trans_idx is not None and has_alpha)
+            flags = disposal_bits | (0x01 if has_trans else 0x00)
             f.write(b"\x21\xF9\x04")
-            f.write(struct.pack("<BBHB", flags, dur_cs, trans_idx, 0))
+            t_idx = trans_idx if has_trans else 0
+            f.write(struct.pack("<BBHB", flags, dur_cs, t_idx, 0))
 
             # Image Descriptor — 无局部调色板
             f.write(b"\x2C")
             f.write(struct.pack("<HHHH", 0, 0, w, h))
-            f.write(b"\x00")  # packed field: no local color table
+            f.write(b"\x00")
 
             # LZW 压缩
             min_code_size = 8
