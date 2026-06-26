@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/version-v1.1.3-blue" alt="Version">
   <img src="https://img.shields.io/badge/Python-3.8%2B-blue" alt="Python">
   <img src="https://img.shields.io/badge/AstrBot-%E6%8F%92%E4%BB%B6%E6%A1%86%E6%9E%B6-brightgreen" alt="AstrBot">
-  <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
+  <img src="https://img.shields.io/badge/license-AGPL--3.0-blue" alt="License">
 </p>
 
 ---
@@ -202,7 +202,7 @@ astrbot_plugin_pic_toolbox/
 
 ## 📝 许可证
 
-[MIT License](LICENSE)
+[GNU AGPL v3.0 License](LICENSE)
 
 ---
 
