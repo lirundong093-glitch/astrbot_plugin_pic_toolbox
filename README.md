@@ -224,6 +224,7 @@ astrbot_plugin_pic_toolbox/
 
 - [B1gM8c/Petpet](https://github.com/B1gM8c/Petpet) — 摸头杀原始算法
 - [meme-generator](https://github.com/MeetWq/meme-generator) — 发射 / 撅人 / 鞭笞 / 砍头表情包灵感来源
+- [pic—mirror]https://github.com/FenChen0211/astrbot-plugin-pic-mirror
 - [AstrBot](https://github.com/AstrBotDevs/AstrBot) — 机器人框架
 - [Pillow (PIL)](https://python-pillow.org/) — 图像处理核心库
 - [OpenCV](https://opencv.org/) — 人脸检测（`发射` 指令）
