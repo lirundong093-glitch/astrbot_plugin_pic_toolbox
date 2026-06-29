@@ -55,7 +55,7 @@
 
 - **图片来源**：按优先级依次尝试 ①引用回复中的图片 ②直接发送的图片 ③ `@用户` 的 QQ 头像（需开启 `enable_at_avatar`）
 - **GIF 支持**：所有变换类指令均正确处理 GIF 增量帧，保留时长、透明度与循环信息
-- **精准匹配**：`match_mode` 开启后可直接发送词语触发，无需 `/` 前缀
+- **精准匹配**：`match_mode` 开启后可直接发送词语触发，无需 `/` 前缀，参考了插件[astrbot-plugin-pic-mirror](https://github.com/FenChen0211/astrbot-plugin-pic-mirror)
 - **自动清理**：启动时清理超过 1 小时的残留临时文件，处理后 10 秒自动删除输出文件
 
 ---
@@ -224,7 +224,7 @@ astrbot_plugin_pic_toolbox/
 
 - [B1gM8c/Petpet](https://github.com/B1gM8c/Petpet) — 摸头杀原始算法
 - [meme-generator](https://github.com/MeetWq/meme-generator) — 发射 / 撅人 / 鞭笞 / 砍头表情包灵感来源
-- [pic—mirror]https://github.com/FenChen0211/astrbot-plugin-pic-mirror
+- [astrbot-plugin-pic-mirror](https://github.com/FenChen0211/astrbot-plugin-pic-mirror)
 - [AstrBot](https://github.com/AstrBotDevs/AstrBot) — 机器人框架
 - [Pillow (PIL)](https://python-pillow.org/) — 图像处理核心库
 - [OpenCV](https://opencv.org/) — 人脸检测（`发射` 指令）
